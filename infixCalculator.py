@@ -2,48 +2,43 @@ from operator import add, sub, mul, truediv
 
 
 class Calculator(object):
-    op = {'+': add, '-': sub, '*': mul, '/': truediv}
 
-    def to_suffix(self, s):
-        st = []
-        ret = ''
-        tokens = s.split()
-        for tok in tokens:
-            if tok in ['*', '/']:
-                while st and st[-1] in ['*', '/']:
-                    ret += st.pop() + ' '
-                st.append(tok)
-            elif tok in ['+', '-']:
-                while st and st[-1] != '(':
-                    ret += st.pop() + ' '
-                st.append(tok)
-            elif tok == '(':
-                st.append(tok)
-            elif tok == ')':
-                while st[-1] != '(':
-                    ret += st.pop() + ' '
-                st.pop()
+    def infix_to_prefix(formula):
+        op_stack = []
+        exp_stack = []
+        for ch in formula:
+            if not ch in OPERATORS:
+                exp_stack.append(ch)
+            elif ch == '(':
+                op_stack.append(ch)
+            elif ch == ')':
+                while op_stack[-1] != '(':
+                    op = op_stack.pop()
+                    a = exp_stack.pop()
+                    b = exp_stack.pop()
+                    exp_stack.append( op+b+a )
+                op_stack.pop() # pop '('
             else:
-                ret += tok + ' '
-        while st:
-            ret += st.pop() + ' '
-        return ret
+                while op_stack and op_stack[-1] != '(' and PRIORITY[ch] <= PRIORITY[op_stack[-1]]:
+                    op = op_stack.pop()
+                    a = exp_stack.pop()
+                    b = exp_stack.pop()
+                    exp_stack.append( op+b+a )
+                op_stack.append(ch)
 
-    def eva(self, s):
-        st = []
-        tokens = s.split()
-        for tok in tokens:
-            if tok not in self.op:
-                st.append(float(tok))
-            else:
-                n1 = st.pop()
-                n2 = st.pop()
-                st.append(self.op[tok](n2, n1))
-        return st.pop()
+        # leftover
+        while op_stack:
+            op = op_stack.pop()
+            a = exp_stack.pop()
+            b = exp_stack.pop()
+            exp_stack.append( op+b+a )
+        print exp_stack[-1]
+        return exp_stack[-1]
+
 
     def evaluate(self, string):
         # print(self.to_suffix(string))
-        return self.eva(self.to_suffix(string))
+        return self.infix_to_prefix(string)
 
 
 calc = Calculator()
